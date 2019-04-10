@@ -202,32 +202,24 @@
 
 ;; taquin-acc-state? est le prédicat d'acceptation.
 (define (taquin-acc-state? q)
-	(if (taquin-acc-state?* q -1) #t #f)
+	(taquin-acc-state?* q 0)
 )
 
-;; Pour la liste q et le nombre n,
-;; taquin-acc-state?* retourne
-;; #f si q n'est pas une suite arithmétique de raison 1 et d'élément initial (+ n 1),
-;; le dernier élément de q sinon.
 ;; Pour la liste de listes q et le nombre n,
-;; taquin-acc-state?* retourne
-;; #f si (apply append q) n'est pas une suite arithmétique de raison 1 et d'élément initial (+ n 1),
-;; le dernier élément de (apply append q) sinon.
+;; taquin-acc-state?* retourne 
+;; #t si (apply append q) est une suite arithmétique de raison 1 et d'élément initial n
+;; #f sinon
 ;;
-;; Si n est #f, taquin-acc-state?* retourne #f.
-;; Si q est vide, taquin-acc-state?* retourne n.
-;;
-;; En particulier, si q est un état de taquin et n est -1,
+;; En particulier, si q est un état de taquin et n est 0,
 ;; taquin-acc-state?* retourne #t si q est l'état accepteur, #f sinon.
 (define (taquin-acc-state?* q n)
 	(cond
-		((not n) #f)
-		((null? q) n)
-		((list? (car q))
-			(taquin-acc-state?* (cdr q) (taquin-acc-state?* (car q) n))
+		((null? q) #t)
+		((null? (car q))
+			(taquin-acc-state?* (cdr q) n)
 		)
-		((= (car q) (+ n 1))
-			(taquin-acc-state?* (cdr q) (car q))
+		((= (caar q) n)
+			(taquin-acc-state?* (cons (cdar q) (cdr q)) (+ n 1))
 		)
 		(else #f)
 	)
