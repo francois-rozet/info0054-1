@@ -39,6 +39,12 @@
 	)
 )
 
+;; Pour les paires l et r dont les car sont des nombres,
+;; car<? retourne #t si (car l) est plus petit que (car r), #f sinon.
+(define (car<? l r)
+	(< (car l) (car r))
+)
+
 ;; Pour les listes l et r,
 ;; shorter? retourne #t si l est plus courte que r, #f sinon.
 (define (shorter? l r)
@@ -392,4 +398,63 @@
 
 (define (rp-solve s adj acc-state?)
 	(lambda () (fun adj acc-state? (set) '() (list (list (cons '() s))) '() '() 0))
+)
+
+;; SOLVER-HEURISTIQUE
+
+;; Pour les fonctions d'adjacence, d'acceptation et heuristique, adj, acc-state? et heuristic
+;; et la liste de paires, triées par car croissant, 
+;; dont le cdr est un chemin et le car l'heuristique évaluée au dernier état de ce chemin,
+;; fun-heuristic retourne une paire (m_k, f_k) où m_k est un mot et
+;; f_k est une procédure retournant une paire (m_k+1, f_k+1) dans une relation de récursion,
+;; jusqu'à f_N retournant la liste vide.
+(define (fun-heuristic adj acc-state? heuristic p-queue)
+	(cond
+		((null? p-queue) '())
+		((acc-state? (state (cadar p-queue)))
+			(cons
+				(map-reverse sigma (cdar p-queue))
+				(lambda () (fun-heuristic adj acc-state? heuristic (cdr p-queue)))
+			)
+		)
+		(else
+			(fun-heuristic
+				adj
+				acc-state?
+				heuristic
+				(merge
+					(sort 
+						(map
+							(lambda (path)
+								(cons
+									(heuristic (state (car path)))
+									path
+								)
+							)
+							(child adj (cdar p-queue))
+						)
+						car<?
+					)
+					(cdr p-queue)
+					car<?
+				)
+			)
+		)
+	)
+)
+
+(define (rp-solve-heuristic s adj acc-state? heuristic)
+	(lambda ()
+		(fun-heuristic
+			adj
+			acc-state?
+			heuristic
+			(list
+				(cons
+					(heuristic s)
+					(list (cons '() s))
+				)
+			)
+		)
+	)
 )
