@@ -21,6 +21,24 @@
 	)
 )
 
+;; Pour la procédure p à un argument et la liste l,
+;; map-reverse retourne (reverse (map p l)).
+(define (map-reverse p l)
+	(map-reverse-acc p l '())
+)
+
+;; Pour la procédure p à un argument, la liste l et la liste acc,
+;; map-reverse-acc retourne (append (reverse (map p l)) acc).
+;;
+;; En particulier, si acc est la liste vide,
+;; map-reverse-acc retourne (reverse (map p l)).
+(define (map-reverse-acc p l acc)
+	(if (null? l)
+		acc
+		(map-reverse-acc p (cdr l) (cons (p (car l)) acc))
+	)
+)
+
 ;; Pour les listes l et r,
 ;; shorter? retourne #t si l est plus courte que r, #f sinon.
 (define (shorter? l r)
@@ -28,8 +46,8 @@
 )
 
 ;; Pour les paires l et r dont les car sont des listes,
-;; pshorter? retourne #t si (car l) est plus courte que (car r), #f sinon.
-(define (pshorter? l r)
+;; car-shorter? retourne #t si (car l) est plus courte que (car r), #f sinon.
+(define (car-shorter? l r)
 	(shorter? (car l) (car r))
 )
 
@@ -153,14 +171,14 @@
 			(map
 				(lambda (path*)
 					(cons
-						(append (map sigma (reverse path*)) word-end)
+						(append (map-reverse sigma path*) word-end)
 						(lambda (queue*) (queue2words queue* (cdr path*) (cons (sigma (car path*)) word-end)))
 					)
 				)
 				(pop queue (state (car path)))
 			)
 			(queue2words queue (cdr path) (cons (sigma (car path)) word-end))
-			pshorter?
+			car-shorter?
 		)
 	)
 )
@@ -204,7 +222,7 @@
 				(let ((word-end (reverse rev-word-end)))
 					(cons
 						(cons
-							(append (map sigma (reverse path)) word-end)
+							(append (map-reverse sigma path) word-end)
 							(lambda (queue*) (queue2words queue* (cdr path) (cons (sigma (car path)) word-end)))
 						)
 						(keys2words (cdr keys) path)
@@ -292,10 +310,10 @@
 ;; Pour les fonctions d'adjacence et d'acceptation adj et acc-state?, le set visited, la liste queue,
 ;; la liste de chemins presque non-redondants paths, la liste des clés trouvées keys,
 ;; la liste des paires (mot . queue2words) words et le nombre de coups joués n,
-;; fun retourne une paire dont
-;; le car est le kième mot le plus court (non strictement) et
-;; le cdr est la procédure fun paramètrée pour retourner une paire dont le car est le k+1ième mot le plus court et
-;; le cdr est la procédure fun ... et ainsi de suite.
+;; fun retourne une paire (m_k, f_k) où m_k est un mot et
+;; f_k est une procédure retournant une paire (m_k+1, f_k+1) dans une relation de récursion
+;; où m_i est au moins aussi court que m_i+1,
+;; jusqu'à f_N retournant la liste vide.
 (define (fun adj acc-state? visited queue paths keys words n)
 	(cond
 		((and (null? paths) (null? words)) '())
@@ -313,7 +331,7 @@
 						(merge
 							((cdar words) queue)
 							(cdr words)
-							pshorter?
+							car-shorter?
 						)
 						n
 					)
@@ -335,7 +353,7 @@
 								(map
 									(lambda (key)
 										(cons
-											(map sigma (reverse key))
+											(map-reverse sigma key)
 											(lambda (queue) (queue2words queue (cdr key) (list (sigma (car key)))))
 										)
 									)
@@ -348,12 +366,12 @@
 											queueds
 										)
 									)
-									pshorter?
+									car-shorter?
 								)
-								pshorter?
+								car-shorter?
 							)
 							words
-							pshorter?
+							car-shorter?
 						)
 					)
 				)
@@ -372,9 +390,6 @@
 	)
 )
 
-;; Pour l'état initial s et les fonctions d'adjacence et d'acceptation adj et acc-state?,
-;; rp-solve retourne la procédure fun paramètrée pour retourner une paire dont
-;; le car est le mot le plus court (non-strictement) et le cdr ... cf. fun
 (define (rp-solve s adj acc-state?)
 	(lambda () (fun adj acc-state? (set) '() (list (list (cons '() s))) '() '() 0))
 )
