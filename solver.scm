@@ -316,8 +316,8 @@
 ;; Pour les fonctions d'adjacence et d'acceptation adj et acc-state?, le set visited, la liste queue,
 ;; la liste de chemins presque non-redondants paths, la liste des clés trouvées keys,
 ;; la liste des paires (mot . queue2words) words et le nombre de coups joués n,
-;; fun retourne une paire (m_k, f_k) où m_k est un mot et
-;; f_k est une procédure retournant une paire (m_k+1, f_k+1) dans une relation de récursion
+;; fun retourne une paire (m_k . f_k) où m_k est un mot et
+;; f_k est une procédure retournant une paire (m_k+1 . f_k+1) dans une relation de récursion
 ;; où m_i est au moins aussi court que m_i+1,
 ;; jusqu'à f_N retournant la liste vide.
 (define (fun adj acc-state? visited queue paths keys words n)
@@ -403,17 +403,17 @@
 ;; SOLVER-HEURISTIQUE
 
 ;; Pour les fonctions d'adjacence, d'acceptation et heuristique, adj, acc-state? et heuristic
-;; et la liste de paires, triées par car croissant, 
-;; dont le cdr est un chemin et le car l'heuristique évaluée au dernier état de ce chemin,
-;; fun-heuristic retourne une paire (m_k, f_k) où m_k est un mot et
-;; f_k est une procédure retournant une paire (m_k+1, f_k+1) dans une relation de récursion,
+;; et la liste de paires ((+ h l) . (l . path)), triées par car croissant, où path est un chemin
+;; h l'heuristique évaluée au dernier état de ce chemin et l sa longueur,
+;; fun-heuristic retourne une paire (m_k . f_k) où m_k est un mot et
+;; f_k est une procédure retournant une paire (m_k+1 . f_k+1) dans une relation de récursion,
 ;; jusqu'à f_N retournant la liste vide.
 (define (fun-heuristic adj acc-state? heuristic p-queue)
 	(cond
 		((null? p-queue) '())
-		((acc-state? (state (cadar p-queue)))
+		((acc-state? (state (caddar p-queue)))
 			(cons
-				(map-reverse sigma (cdar p-queue))
+				(map-reverse sigma (cddar p-queue))
 				(lambda () (fun-heuristic adj acc-state? heuristic (cdr p-queue)))
 			)
 		)
@@ -427,11 +427,14 @@
 						(map
 							(lambda (path)
 								(cons
-									(heuristic (state (car path)))
-									path
+									(+ (heuristic (state (car path))) (+ (cadar p-queue) 1))
+									(cons
+										(+ (cadar p-queue) 1)
+										path
+									)
 								)
 							)
-							(child adj (cdar p-queue))
+							(child adj (cddar p-queue))
 						)
 						car<?
 					)
@@ -452,7 +455,10 @@
 			(list
 				(cons
 					(heuristic s)
-					(list (cons '() s))
+					(cons
+						0
+						(list (cons '() s))
+					)
 				)
 			)
 		)
