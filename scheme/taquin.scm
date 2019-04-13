@@ -1,3 +1,10 @@
+#lang racket
+
+(provide taquin-make-state)
+(provide taquin-adj-states)
+(provide taquin-acc-state?)
+(provide taquin-heuristic)
+
 ;; UTILS
 
 ;; Pour les listes l et r de même taille n et le prédicat p? à deux paramètres,
@@ -205,8 +212,8 @@
 	)
 )
 
-;; taquin-adj est la fonction d'adjacence.
-(define (taquin-adj q)
+;; taquin-adj-states est la fonction d'adjacence.
+(define (taquin-adj-states q)
 	(filter
 		(lambda (x) (cdr x))
 		(map
@@ -242,9 +249,6 @@
 		(else #f)
 	)
 )
-
-;; taquin-s est l'état de taquin N * N de l'énoncé.
-(define taquin-s (taquin-make-state '((2 3 6) (1 x 5) (7 8 4))))
 
 ;; HEURISTIQUES
 
@@ -322,8 +326,3 @@
 
 ;; taquin-heuristic est la procédure taquin-h2
 (define taquin-heuristic taquin-h2)
-
-;; SOLVE
-
-;; ((rp-solve taquin-s taquin-adj taquin-acc-state?))
-;; ((rp-solve-heuristic taquin-s taquin-adj taquin-acc-state? taquin-heuristic))

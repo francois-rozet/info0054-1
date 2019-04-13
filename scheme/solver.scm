@@ -1,3 +1,8 @@
+#lang racket
+
+(provide rp-solve)
+(provide rp-solve-heuristic)
+
 ;; UTILS
 
 ;; Pour le comparateur comp et les listes l et r triées selon comp,
@@ -316,10 +321,8 @@
 ;; Pour les fonctions d'adjacence et d'acceptation adj et acc-state?, le set visited, la liste queue,
 ;; la liste de chemins presque non-redondants paths, la liste des clés trouvées keys,
 ;; la liste des paires (mot . queue2words) words et le nombre de coups joués n,
-;; fun retourne une paire (m_k . f_k) où m_k est un mot et
-;; f_k est une procédure retournant une paire (m_k+1 . f_k+1) dans une relation de récursion
-;; où m_i est au moins aussi court que m_i+1,
-;; jusqu'à f_N retournant la liste vide.
+;; fun est un itérateur paresseux d'un sous-ensemble du sous-language des mots sans cycle du puzzle.
+;; Ces mots sont donnés par ordre croissant de longueur.
 (define (fun adj acc-state? visited queue paths keys words n)
 	(cond
 		((and (null? paths) (null? words)) '())
@@ -403,11 +406,10 @@
 ;; SOLVER-HEURISTIQUE
 
 ;; Pour les fonctions d'adjacence, d'acceptation et heuristique, adj, acc-state? et heuristic
-;; et la liste de paires ((+ h l) . (l . path)), triées par car croissant, où path est un chemin
+;; et la liste de paires ((+ h l) . (l . path)), triées par car croissant, où path est un chemin,
 ;; h l'heuristique évaluée au dernier état de ce chemin et l sa longueur,
-;; fun-heuristic retourne une paire (m_k . f_k) où m_k est un mot et
-;; f_k est une procédure retournant une paire (m_k+1 . f_k+1) dans une relation de récursion,
-;; jusqu'à f_N retournant la liste vide.
+;; fun-heuristic est un itérateur paresseux d'un sous-ensemble du sous-language des mots sans cycle du puzzle.
+;; Ces mots sont donnés dans l'ordre de l'heuristique.
 (define (fun-heuristic adj acc-state? heuristic p-queue)
 	(cond
 		((null? p-queue) '())
