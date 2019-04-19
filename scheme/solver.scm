@@ -328,7 +328,7 @@
 		((and (null? paths) (null? words)) '())
 		((or (null? paths) (and (not (null? words)) (<= (length (caar words)) n)))
 			(cons
-				(caar words)
+				(cdr (caar words))
 				(lambda ()
 					(fun
 						adj
@@ -415,7 +415,7 @@
 		((null? p-queue) '())
 		((acc-state? (state (caddar p-queue)))
 			(cons
-				(map-reverse sigma (cddar p-queue))
+				(cdr (map-reverse sigma (cddar p-queue)))
 				(lambda () (fun-heuristic adj acc-state? heuristic (cdr p-queue)))
 			)
 		)
