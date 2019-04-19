@@ -20,12 +20,9 @@
     \maketitle
     \section{Solver}
     Notre solver se base sur l'algorithme BFS. Ce dernier ne permet pas d'obtenir toutes les solutions d'un problème régulier, seulement les plus courtes, c.-à-d. celles qui ont été les \og{}premières\fg{} à visiter leurs états. \par
-    Dans la méthode originale, à chaque étape, les chemins dont le dernier état a déjà été visité précédemment sont supprimés. Dans notre implémentation, nous avons décidé de les garder en mémoire. De cette façon, lorsque une solution est trouvée par l'algorithme, nous pouvons en déduire un ensemble de solutions en associant la queue, ou plutôt les queues, de cette solution avec les chemins intermédiaires stockés en mémoire. \par
-    Par exemple, si une solution est décrite par la suite d'états $(q_0, q_1, \ldots, q_k, q_{k+1}, \ldots, q_n)$ où $q_n$ est un état accepteur, et qu'un chemin intermédiaire décrit par $(q_0, q'_1, \ldots, q'_j, q_k)$ est stocké en mémoire, alors nous construisons la solution $(q_0, q'_1, \ldots, q'_j, q_k, q_{k+1}, \ldots, q_n)$. \par
-    En réalité, toutes les solutions \emph{déduites} d'une solution trouvée par l'algorithme sont au mieux aussi courtes que cette dernière. Dès lors, tant qu'il existe d'autres solutions plus courtes, il n'est pas nécessaire de les construire. \par
-    C'est pour cette raison que, dans notre implémentation, chaque solution est enregistrée dans une paire dont le premier élément est son mot associé et le second une procédure retournant la liste des solutions qui en sont déductibles. \par
-    Ces nouvelles solutions sont-elles même des paires \emph{mot-procédure} car, à leur tour, elles peuvent servir de bases pour en déduire d'autres. C'est en quelques sortes un \og{}arbre paresseux\fg{}. \par 
-    Il faut néanmoins prendre garde à ne pas créer de redondances.
+    Dans la méthode originale, à chaque étape, les chemins dont le dernier état a déjà été visité précédemment sont supprimés. Dans notre implémentation, nous avons décidé de les garder en mémoire. Lorsque une solution est trouvée par l'algorithme, nous réintroduisons tous les chemins dont l'état final est un état intermédaire de la solution. \par
+    De cette façon nous sommes assurés de trouver toutes les solutions et dans l'ordre désiré, c.-à-d. de la plus courte à la plus longue. \par
+    Néanmoins, cette méthode est loin d'être optimale. Notamment, elle ne réutilise pas la solution trouvée pour en former de nouvelles à partir des chemins mis de côté. En effet, puisque certains de ces derniers ont un état commun avec la solution, il devrait être possible d'en construire une autre au minimum aussi longue.
     \setcounter{section}{2}
     \section{Heuristique}
     Le solver \og{}avec heuristique\fg{} implémente une \emph{priority queue} dont la priorité est la somme de l'heuristique au dernier état du chemin et de la longueur de ce dernier. L'addition de la longueur permet de privilégier les chemins courts. \par
