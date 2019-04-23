@@ -47,12 +47,6 @@
 	(< (car l) (car r))
 )
 
-;; Pour les listes l et r,
-;; shorter? retourne #t si l est plus courte que r, #f sinon.
-(define (shorter? l r)
-	(<= (length l) (length r))
-)
-
 ;; Pour le prédicat unaire p? et la liste l,
 ;; divide-filter retourne la paire dont
 ;; le car est la liste des éléments de l pour lesquels p? est #t et
@@ -79,32 +73,39 @@
 
 ;; SOLVER
 
-;; Pour une paire pointée p,
-;; state retourne (cdr p).
-;;
-;; En particulier si p est du type (sigma . q),
-;; state retourne q.
-(define state cdr)
+;; N.B. Un chemin est une paire dont le car est la liste de coups du dernier au premier joués et
+;; le cdr une paire dont le car est le dernier état visité et le cdr le set d'états intermédiaires.
 
-;; Pour une paire pointée p,
-;; state retourne (car p).
-;;
-;; En particulier si p est du type (sigma . q),
-;; state retourne sigma.
-(define sigma car)
+;; Pour un chemin path, word retourne la liste de coups joués du premier au dernier.
+(define (word path) (reverse (car path)))
 
-;; N.B. Un chemin est une liste de paires (sigma_i . q_i) représentant, de droite à gauche, une suite de coups.
+;; Pour un chemin, last-state retourne le dernier état visité.
+(define last-state cadr)
+
+;; Pour un chemin, states retourne le set d'états intermédiaires.
+(define states cddr)
 
 ;; Pour un chemin path et une fonction d'adjacence adj,
 ;; child retourne la liste des chemins valides enfants de path.
 (define (child adj path)
 	(map
-		(lambda (x) (cons x path))
+		(lambda (x)
+			(cons
+				(cons (car x) (car path))
+				(cons (cdr x) (set-add (states path) (cadr path)))
+			)
+		)
 		(filter
-			(lambda (y) (not (member (state y) (map state path))))
-			(adj (state (car path)))
+			(lambda (y) (not (set-member? (states path) (cdr y))))
+			(adj (last-state path))
 		)
 	)
+)
+
+;; Pour les chemins l et r,
+;; shorter? retourne #t si l est plus court que r, #f sinon.
+(define (shorter? l r)
+	(<= (length (word l)) (length (word r)))
 )
 
 ;; Pour les fonctions d'adjacence et d'acceptation adj et acc-state?,
@@ -119,25 +120,24 @@
 		(let*
 			(
 				(path (car queue))
-				(q (state (car path)))
+				(q (last-state path))
 			)
 			(cond
 				((acc-state? q)
 					(let*
 						(
-							(del (list->set (map state path)))
 							(temp
 								(divide-filter
-									(lambda (x) (set-member? del (state (car x))))
+									(lambda (x) (set-member? (states path) (last-state x)))
 									waiting
 								)
 							)
-							(visited* (set-subtract visited del))
+							(visited* (set-subtract visited (states path)))
 							(queue* (merge (sort (car temp) shorter?) (cdr queue) shorter?))
 							(waiting* (cdr temp))
 						)
 						(cons
-							(cdr (reverse (map sigma path)))
+							(word path)
 							(lambda () (fun adj acc-state? visited* queue* waiting*))
 						)
 					)
@@ -154,7 +154,15 @@
 )
 
 (define (rp-solve s adj acc-state?)
-	(lambda () (fun adj acc-state? (set) (list (list (cons '() s))) '()))
+	(lambda ()
+		(fun
+			adj
+			acc-state?
+			(set)
+			(list (cons '() (cons s (set))))
+			'()
+		)
+	)
 )
 
 ;; SOLVER-HEURISTIQUE
@@ -167,9 +175,9 @@
 (define (fun-heuristic adj acc-state? heuristic p-queue)
 	(cond
 		((null? p-queue) '())
-		((acc-state? (state (cadar p-queue)))
+		((acc-state? (last-state (cdar p-queue)))
 			(cons
-				(cdr (reverse (map sigma (cdar p-queue))))
+				(word (cdar p-queue))
 				(lambda () (fun-heuristic adj acc-state? heuristic (cdr p-queue)))
 			)
 		)
@@ -183,7 +191,7 @@
 						(map
 							(lambda (path)
 								(cons
-									(heuristic (state (car path)))
+									(heuristic (last-state path))
 									path
 								)
 							)
@@ -208,7 +216,7 @@
 			(list
 				(cons
 					(heuristic s)
-					(list (cons '() s))
+					(cons '() (cons s (set)))
 				)
 			)
 		)
