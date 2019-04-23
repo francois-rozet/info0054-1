@@ -160,16 +160,16 @@
 ;; SOLVER-HEURISTIQUE
 
 ;; Pour les fonctions d'adjacence, d'acceptation et heuristique, adj, acc-state? et heuristic
-;; et la liste de paires ((+ h l) . (l . path)), triées par car croissant, où path est un chemin,
-;; h l'heuristique évaluée au dernier état de ce chemin et l sa longueur,
+;; et la liste de paires (h . path), triées par car croissant, où path est un chemin et
+;; h l'heuristique évaluée au dernier état de ce chemin,
 ;; fun-heuristic est un itérateur paresseux d'un sous-ensemble du sous-language des mots sans cycle du puzzle.
 ;; Ces mots sont donnés dans l'ordre de l'heuristique.
 (define (fun-heuristic adj acc-state? heuristic p-queue)
 	(cond
 		((null? p-queue) '())
-		((acc-state? (state (caddar p-queue)))
+		((acc-state? (state (cadar p-queue)))
 			(cons
-				(cdr (reverse (map sigma (cddar p-queue))))
+				(cdr (reverse (map sigma (cdar p-queue))))
 				(lambda () (fun-heuristic adj acc-state? heuristic (cdr p-queue)))
 			)
 		)
@@ -179,18 +179,15 @@
 				acc-state?
 				heuristic
 				(merge
-					(sort 
+					(sort
 						(map
 							(lambda (path)
 								(cons
-									(+ (heuristic (state (car path))) (+ (cadar p-queue) 1))
-									(cons
-										(+ (cadar p-queue) 1)
-										path
-									)
+									(heuristic (state (car path)))
+									path
 								)
 							)
-							(child adj (cddar p-queue))
+							(child adj (cdar p-queue))
 						)
 						car<?
 					)
@@ -211,10 +208,7 @@
 			(list
 				(cons
 					(heuristic s)
-					(cons
-						0
-						(list (cons '() s))
-					)
+					(list (cons '() s))
 				)
 			)
 		)
