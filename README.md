@@ -10,3 +10,7 @@ Projet réalisé à l'aide du langage fonctionnel [Scheme](https://en.wikipedia.
 
 * **Maxime Meurisse** - [meurissemax](https://github.com/meurissemax)
 * **François Rozet** - [Donshel](https://github.com/Donshel)
+
+## Note
+
+Ce projet a reçu la note de 17/20.
