@@ -19,10 +19,7 @@
 \begin{document}
     \maketitle
     \section{Solver}
-    Notre solver se base sur l'algorithme BFS. Ce dernier ne permet pas d'obtenir toutes les solutions d'un problème régulier, seulement les plus courtes, c.-à-d. celles qui ont été les \og{}premières\fg{} à visiter leurs états. \par
-    Dans la méthode originale, à chaque étape, les chemins dont le dernier état a déjà été visité précédemment sont supprimés. Dans notre implémentation, nous avons décidé de les garder en mémoire. Lorsqu'une solution est trouvée par l'algorithme, nous réintroduisons tous les chemins dont l'état final est un état intermédiaire de la solution. \par
-    De cette façon nous sommes assurés de trouver toutes les solutions et dans l'ordre désiré, c.-à-d. de la plus courte à la plus longue. \par
-    Néanmoins, cette méthode est loin d'être optimale. Notamment, elle ne réutilise pas la solution trouvée pour en former de nouvelles à partir des chemins mis de côté. En effet, puisque certains de ces derniers ont un état commun avec la solution, il devrait être possible d'en construire une autre au minimum aussi longue.
+    Notre solver parcourt l'arbre des chemins sans cycles dans l'ordre dicté par une \emph{recherche en largeur}. Il est donc assuré de trouver toutes les solutions et dans l'ordre désiré, c.-à-d. de la plus courte à la plus longue.
     \setcounter{section}{2}
     \section{Heuristique}
     Le solver \og{}avec heuristique\fg{} implémente une \emph{priority queue} dont la priorité\footnote{La plus petite valeur est prioritaire.} est l'heuristique au dernier état du chemin.
