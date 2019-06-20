@@ -1,3 +1,9 @@
+#lang racket
+
+(provide s)
+(provide adj)
+(provide acc-state?)
+
 ;; PUZZLE
 
 (define Sigma '(1 2))
@@ -20,7 +26,3 @@
 (define (acc-state? q)
 	(member q F)
 )
-
-;; SOLVE
-
-;; ((rp-solve s adj acc-state?))

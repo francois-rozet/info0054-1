@@ -1,9 +1,9 @@
 #lang racket
 
-(provide taquin-make-state)
-(provide taquin-adj-states)
-(provide taquin-acc-state?)
-(provide taquin-heuristic)
+(provide s)
+(provide adj)
+(provide acc-state?)
+(provide (rename-out (h2 heuristic)))
 
 ;; UTILS
 
@@ -53,22 +53,22 @@
 (define Sigma '(u d l r))
 
 ;; Pour la liste de N listes l représentant un taquin selon la représentation de l'énoncé,
-;; taquin-make-state retourne l dans laquelle chaque numéro a été diminué de une unité et l'élément 'x été remplacé par N^2 - 1.
-(define (taquin-make-state l)
-	(taquin-make-state* (length l) l)
+;; make-state retourne l dans laquelle chaque numéro a été diminué de une unité et l'élément 'x été remplacé par N^2 - 1.
+(define (make-state l)
+	(make-state* (length l) l)
 )
 
 ;; N.B. Pour la suite, chaque état de taquin sera supposé sous cette représentation.
 
 ;; Pour la liste ou liste de listes de nombres l et le nombre N,
-;; taquin-make-state* retourne l dans laquelle chaque numéro a été diminué de une unité et l'éventuel élément 'x été remplacé par N^2 - 1.
-(define (taquin-make-state* N l)
+;; make-state* retourne l dans laquelle chaque numéro a été diminué de une unité et l'éventuel élément 'x été remplacé par N^2 - 1.
+(define (make-state* N l)
 	(cond
 		((null? l) '())
 		((list? (car l))
 			(cons
-				(taquin-make-state* N (car l))
-				(taquin-make-state* N (cdr l))
+				(make-state* N (car l))
+				(make-state* N (cdr l))
 			)
 		)
 		(else
@@ -77,20 +77,22 @@
 					(- (* N N) 1)
 					(- (car l) 1)
 				)
-				(taquin-make-state* N (cdr l))
+				(make-state* N (cdr l))
 			)
 		)
 	)
 )
 
+(define s (make-state '((2 3 6) (1 x 5) (7 8 4))))
+
 ;; Pour le nombre N2-1, la liste de listes q et le coup sigma appartenant à Sigma,
-;; taquin-delta retourne q dans lequel l'élément N2-1 a été déplacé selon le coup sigma.
+;; delta retourne q dans lequel l'élément N2-1 a été déplacé selon le coup sigma.
 ;;
-;; Si N2-1 n'existe pas dans q, si sigma est impossible ou si sigma n'appartient pas à Sigma, taquin-delta retourne #f.
+;; Si N2-1 n'existe pas dans q, si sigma est impossible ou si sigma n'appartient pas à Sigma, delta retourne #f.
 ;;
 ;; En particulier si q est l'état d'un taquin, N2-1 le numéro représentant le "trou" du taquin et sigma un coup valide,
-;; taquin-delta retourne l'état du taquin après le coup.
-(define (taquin-delta N2-1 q sigma)
+;; delta retourne l'état du taquin après le coup.
+(define (delta N2-1 q sigma)
 	(cond
 		((null? q) #f)
 		((member N2-1 (car q))
@@ -111,7 +113,7 @@
 					)
 				)
 				((equal? sigma 'l)
-					(let ((l (taquin-delta-l N2-1 (car q))))
+					(let ((l (delta-l N2-1 (car q))))
 						(if l
 							(cons l (cdr q))
 							#f
@@ -119,7 +121,7 @@
 					)
 				)
 				((equal? sigma 'r)
-					(let ((l (taquin-delta-r N2-1 (car q))))
+					(let ((l (delta-r N2-1 (car q))))
 						(if l
 							(cons l (cdr q))
 							#f
@@ -143,7 +145,7 @@
 			)
 		)
 		(else
-			(let ((q* (taquin-delta N2-1 (cdr q) sigma)))
+			(let ((q* (delta N2-1 (cdr q) sigma)))
 				(if q*
 					(cons
 						(car q)
@@ -157,10 +159,10 @@
 )
 
 ;; Pour le nombre N2-1 et la liste q,
-;; taquin-delta-r retourne q dans laquelle l'élément N2-1 a été échangé avec l'élément à sa droite.
+;; delta-r retourne q dans laquelle l'élément N2-1 a été échangé avec l'élément à sa droite.
 ;;
-;; Si N2-1 n'existe pas dans q ou si N2-1 est l'élément final de q, taquin-delta-r retourne #f.
-(define (taquin-delta-r N2-1 q)
+;; Si N2-1 n'existe pas dans q ou si N2-1 est l'élément final de q, delta-r retourne #f.
+(define (delta-r N2-1 q)
 	(cond
 		((null? q) #f)
 		((null? (cdr q)) #f)
@@ -171,7 +173,7 @@
 			)
 		)
 		(else
-			(let ((q* (taquin-delta-r N2-1 (cdr q))))
+			(let ((q* (delta-r N2-1 (cdr q))))
 				(if q*
 					(cons
 						(car q)
@@ -185,10 +187,10 @@
 )
 
 ;; Pour le nombre N2-1 et la liste q,
-;; taquin-delta-l retourne q dans laquelle l'élément N2-1 a été échangé avec l'élément à sa gauche.
+;; delta-l retourne q dans laquelle l'élément N2-1 a été échangé avec l'élément à sa gauche.
 ;;
-;; Si N2-1 n'existe pas dans q ou si N2-1 est l'élément initial de q, taquin-delta-l retourne #f.
-(define (taquin-delta-l N2-1 q)
+;; Si N2-1 n'existe pas dans q ou si N2-1 est l'élément initial de q, delta-l retourne #f.
+(define (delta-l N2-1 q)
 	(cond
 		((null? q) #f)
 		((null? (cdr q)) #f)
@@ -199,7 +201,7 @@
 			)
 		)
 		(else
-			(let ((q* (taquin-delta-l N2-1 (cdr q))))
+			(let ((q* (delta-l N2-1 (cdr q))))
 				(if q*
 					(cons
 						(car q)
@@ -212,39 +214,39 @@
 	)
 )
 
-;; taquin-adj-states est la fonction d'adjacence.
-(define (taquin-adj-states q)
+;; adj est la fonction d'adjacence.
+(define (adj q)
 	(filter
 		(lambda (x) (cdr x))
 		(map
 			(let ((N (length q)))
-				(lambda (sigma) (cons sigma (taquin-delta (- (* N N) 1) q sigma)))
+				(lambda (sigma) (cons sigma (delta (- (* N N) 1) q sigma)))
 			)
 			Sigma
 		)
 	)
 )
 
-;; taquin-acc-state? est le prédicat d'acceptation.
-(define (taquin-acc-state? q)
-	(taquin-acc-state?* q 0)
+;; acc-state? est le prédicat d'acceptation.
+(define (acc-state? q)
+	(acc-state?* q 0)
 )
 
 ;; Pour la liste de listes q et le nombre n,
-;; taquin-acc-state?* retourne 
+;; acc-state?* retourne 
 ;; #t si (apply append q) est une suite arithmétique de raison 1 et d'élément initial n
 ;; #f sinon
 ;;
 ;; En particulier, si q est un état de taquin et n est 0,
-;; taquin-acc-state?* retourne #t si q est l'état accepteur, #f sinon.
-(define (taquin-acc-state?* q n)
+;; acc-state?* retourne #t si q est l'état accepteur, #f sinon.
+(define (acc-state?* q n)
 	(cond
 		((null? q) #t)
 		((null? (car q))
-			(taquin-acc-state?* (cdr q) n)
+			(acc-state?* (cdr q) n)
 		)
 		((= (caar q) n)
-			(taquin-acc-state?* (cons (cdar q) (cdr q)) (+ n 1))
+			(acc-state?* (cons (cdar q) (cdr q)) (+ n 1))
 		)
 		(else #f)
 	)
@@ -253,25 +255,25 @@
 ;; HEURISTIQUES
 
 ;; Pour un état de taquin q,
-;; taquin-h1 retourne le nombre de cases mal placées par rapport à l'état accepteur.
-(define (taquin-h1 q)
-	(taquin-h1-acc q 0 0)
+;; h1 retourne le nombre de cases mal placées par rapport à l'état accepteur.
+(define (h1 q)
+	(h1-acc q 0 0)
 )
 
 ;; Pour une liste de listes q et les naturels n et acc,
-;; taquin-h1-acc retourne acc augmenté du nombre d'éléments de (apply append q) qui diffèrent 
+;; h1-acc retourne acc augmenté du nombre d'éléments de (apply append q) qui diffèrent 
 ;; de l'élément correspondant dans une suite arithmétique de raison 1 et d'élément initial n
 ;;
 ;; En particulier, si q est un état de taquin et n est 0,
-;; taquin-h1 retourne le nombre de cases mal placées par rapport à l'état accepteur.
-(define (taquin-h1-acc q n acc)
+;; h1 retourne le nombre de cases mal placées par rapport à l'état accepteur.
+(define (h1-acc q n acc)
 	(cond
 		((null? q) acc)
 		((null? (car q))
-			(taquin-h1-acc (cdr q) n acc)
+			(h1-acc (cdr q) n acc)
 		)
 		(else
-			(taquin-h1-acc
+			(h1-acc
 				(cons (cdar q) (cdr q))
 				(+ n 1)
 				(if (= (caar q) n)
@@ -284,26 +286,26 @@
 )
 
 ;; Pour un état de taquin q,
-;; taquin-h2 retourne la somme des distances de Manhattan entre les positions des cases dans q et leur position dans l'état accepteur.
-(define (taquin-h2 q)
-	(taquin-h2-acc (length q) q 0 0 0 0)
+;; h2 retourne la somme des distances de Manhattan entre les positions des cases dans q et leur position dans l'état accepteur.
+(define (h2 q)
+	(h2-acc (length q) q 0 0 0 0)
 )
 
 ;; Pour un naturel non nul N, une liste de listes q et les naturels n, x, y et acc,
-;; taquin-h2-acc retourne acc augmenté de la somme de
+;; h2-acc retourne acc augmenté de la somme de
 ;; la somme des distances de Manhattan entre (div q_0j N) et (cons (+ x j) y) où q_0j est le jème élément de la première liste de q (j >= 0)
 ;; et la somme des distances de Manhattan entre (div q_ij N) et (cons j (+ y i)) où q_ij est le jème élément de la ième liste de q (j >=0 et i > 0)
 ;;
 ;; En particulier, si q est un état de taquin, N sa longueur, n, x, y et acc sont nuls,
-;; taquin-h2 retourne la somme des distances de Manhattan entre les positions des cases dans q et leur position dans l'état accepteur.
-(define (taquin-h2-acc N q n x y acc)
+;; h2 retourne la somme des distances de Manhattan entre les positions des cases dans q et leur position dans l'état accepteur.
+(define (h2-acc N q n x y acc)
 	(cond
 		((null? q) acc)
 		((null? (car q))
-			(taquin-h2-acc N (cdr q) n 0 (+ y 1) acc)
+			(h2-acc N (cdr q) n 0 (+ y 1) acc)
 		)
 		(else
-			(taquin-h2-acc
+			(h2-acc
 				N
 				(cons (cdar q) (cdr q))
 				(+ n 1)
@@ -323,6 +325,3 @@
 		)
 	)
 )
-
-;; taquin-heuristic est la procédure taquin-h2
-(define taquin-heuristic taquin-h2)

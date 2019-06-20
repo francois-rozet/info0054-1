@@ -1,3 +1,10 @@
+#lang racket
+
+(provide s)
+(provide adj)
+(provide acc-state?)
+(provide (rename-out (h heuristic)))
+
 ;; PUZZLE
 
 (define Sigma
@@ -13,28 +20,28 @@
 	'(8)
 )
 
-(define plmc-s 1)
+(define s 1)
 
-(define (plmc-delta q sigma)
+(define (delta q sigma)
 	(if (= (car sigma) q)
 		(cdr sigma)
 		#f
 	)
 )
 
-(define (plmc-adj q)
+(define (adj q)
 	(filter
 		(lambda (x) (cdr x))
 		(map
 			(lambda (sigma)
-				(cons sigma (plmc-delta q sigma))
+				(cons sigma (delta q sigma))
 			)
 			Sigma
 		)
 	)
 )
 
-(define (plmc-acc-state? q)
+(define (acc-state? q)
 	(member	q F)
 )
 
@@ -48,18 +55,13 @@
 	)
 )
 
-(define (plmc-h q)
-	(plmc-h-acc q H)
+(define (h q)
+	(h-acc q H)
 )
 
-(define (plmc-h-acc q H)
+(define (h-acc q H)
 	(if	(= (caar H) q)
 		(cdar H)
-		(plmc-h-acc q (cdr H))
+		(h-acc q (cdr H))
 	)
 )
-
-;; SOLVE
-
-;; ((rp-solve plmc-s plmc-adj plmc-acc-state?))
-;; ((rp-solve-heuristic plmc-s plmc-adj plmc-acc-state? plmc-h))

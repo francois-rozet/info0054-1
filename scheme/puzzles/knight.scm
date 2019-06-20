@@ -1,3 +1,9 @@
+#lang racket
+
+(provide s)
+(provide adj)
+(provide acc-state?)
+
 ;; UTILS
 
 (define (loop? l)
@@ -28,9 +34,9 @@
 	)
 )
 
-(define knight-s '(1 3 6 0))
+(define s '(1 3 6 0))
 
-(define (knight-delta q sigma)
+(define (delta q sigma)
 	(let
 		(
 			(q*
@@ -52,22 +58,18 @@
 	)
 )
 
-(define (knight-adj q)
+(define (adj q)
 	(filter
 		(lambda (x) (cdr x))
 		(map
 			(lambda (sigma)
-				(cons sigma (knight-delta q sigma))
+				(cons sigma (delta q sigma))
 			)
 			Sigma
 		)
 	)
 )
 
-(define (knight-acc-state? q)
+(define (acc-state? q)
 	(member	q F)
 )
-
-;; SOLVE
-
-;; ((rp-solve knight-s knight-adj knight-acc-state?))
