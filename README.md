@@ -9,7 +9,7 @@ Projet réalisé à l'aide du langage fonctionnel [Scheme](https://en.wikipedia.
 ## Auteurs
 
 * **Maxime Meurisse** - [meurissemax](https://github.com/meurissemax)
-* **François Rozet** - [Donshel](https://github.com/Donshel)
+* **François Rozet** - [francois-rozet](https://github.com/francois-rozet)
 
 ## Note
 
